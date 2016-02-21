@@ -10,6 +10,24 @@ module Util
           if attribute.is_a?(Array)
             if method.is_a?(Array)
               method.map {|m| attribute.map { |a| Util.normalize_keywords a.send(m), stem_keywords, ignore_list } }
+            elsif method.is_a?(Hash)
+              text = []
+              attribute.each do |top_class|
+                method.keys.map do |nested_class_name|
+                  nested_objects = top_class.send(nested_class_name)
+                  unless nested_objects.blank?
+                    nested_attribute_names = method[nested_class_name]
+                    if nested_objects.is_a?(Array)
+                      if nested_attribute_names.is_a?(Array)
+                        nested_objects.map {|no| nested_attribute_names.map { |nan| text << nan.send(no) } }
+                      else
+                        nested_objects.map(&nested_attribute_names).map { |na| text << na }
+                      end
+                    end
+                  end
+                end
+              end
+              Util.normalize_keywords text, stem_keywords, ignore_list
             else
               attribute.map(&method).map { |t| Util.normalize_keywords t, stem_keywords, ignore_list }
             end
